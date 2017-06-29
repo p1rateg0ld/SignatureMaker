@@ -3,6 +3,9 @@
 # TODO Make dynamic and not company specific
 # TODO Write email parser script so someone can send me an email with their info and it will auto make them a signature
 
+# TODO Fix formatting issue with cell phone numbers, see michaels version, fixed manually
+# TODO Fix 'E' outputting even when there isn't an email address entered
+
 # Create a ?.htm file for Outlook signature.
 # Takes parameters: FirstName, LastName, Title, EmailAddress, WorkPhone, CellPhone, LinkToCustomImage
 
@@ -20,7 +23,7 @@ from sys import argv
 import argparse
 
 # Default URL for image
-DEFAULTURL = "thatoneurl"
+DEFAULTURL = "http://easypayfinance.com/Cdn/Images/epf_logo_sm.png"
 
 
 # Gets user info from terminal and returns a dictionary.
@@ -30,19 +33,19 @@ def getUserInfo(info=None):
     if info is None:
         info = dict.fromkeys(["firstname","lastname","title","emailaddress","workphone","cellphone","linkaddress"])
 
-    if info["firstname"] is None:
+    if not info["firstname"]:
         info["firstname"] = input("Enter First Name: ")
-    if info["lastname"] is None:
+    if not info["lastname"]:
         info["lastname"] = input("Enter Last Name: ")
-    if info["title"] is None:
-       info["title"] = input("Enter Title: ")
-    if info["emailaddress"] is None:
-        info["emailaddress"] = input("Enter Email Address Name: ")
-    if info["workphone"] is None:
-       info["workphone"] = input("Enter Work Phone Number: ")
-    if info["cellphone"] is None:
+    if not info["title"]:
+        info["title"] = input("Enter Title: ")
+    if not info["emailaddress"]:
+        info["emailaddress"] = input("Enter Email Address: ")
+    if not info["workphone"]:
+        info["workphone"] = input("Enter Work Phone Number: ")
+    if not info["cellphone"]:
         info["cellphone"] = input("Enter Cell Phone Number: ")
-    if info["linkaddress"] is None:
+    if not info["linkaddress"]:
         temp = input("Enter URL link to custom image (Press Enter for Default): ")
         if temp == '':
             info["linkaddress"] = DEFAULTURL
@@ -69,25 +72,47 @@ def parseArguments():
 
 
 def makeHTML(info):
-    filepath = "C:/Users/MyUserName/Documents/signature.htm"
+    filepath = "C:/Users/wGeorgington/Documents/signature.htm"
     file = open(filepath, 'w')
-    html_str = """<table cellpadding="0" cellspacing="0" border="0" style="background: none; border-width: 0px; border: 0px; margin: 0; padding: 0;">
-    <tr><td colspan="2" style="padding-bottom: 5px; color: #159558; font-size: 18px; font-family: Arial, Helvetica, sans-serif;">%s %s</td></tr>
-    <tr><td colspan="2" style="color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><i>%s</i></td></tr>
-    <tr><td colspan="2" style="color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><strong>COMPANY</strong></td></tr>
-    <tr><td width="20" valign="top" style="vertical-align: top; width: 20px; color: #159558; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">W:</td><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">%s&nbsp;&nbsp;<span style="color: #159558;">M:&nbsp;</span>%s</td></tr>
-    <tr><td width="20" valign="top" style="vertical-align: top; width: 20px; color: #159558; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">w:</td><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><a href="https://www.Website.com" style=" color: #1da1db; text-decoration: none; font-weight: normal; font-size: 14px;">Website.com</a>&nbsp;&nbsp;<span style="color: #159558;">e:&nbsp;</span><a href="mailto:%s" style="color: #1da1db; text-decoration: none; font-weight: normal; font-size: 14px;">%s</a></td></tr>
-    <tr><td colspan="2" style="padding-bottom: 8px; padding-top: 5px;"><img src="%s"></td></tr>
-    </table>""" % (
-        info["firstname"],
-        info["lastname"],
-        info["title"],
-        info["workphone"],
-        info["cellphone"],
-        info["emailaddress"],
-        info["emailaddress"],
-        info["linkaddress"]
-    )
+    html_str = """<!DOCTYPE html>"""
+    html_str += """\n<table cellpadding="0" cellspacing="0" border="0" style="background: none; border-width: 0px; border: 0px; margin: 0; padding: 0;">"""
+    html_str += """\n<tr><td colspan="2" style="padding-bottom: 5px; color: #159558; font-size: 18px; font-family: Arial, Helvetica, sans-serif;">%s %s</td></tr>""" % (info["firstname"], info["lastname"])
+    if not info["title"]:
+        html_str += """\n<tr><td colspan="2" style="color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><i>%s</i></td></tr>""" % (info["title"])
+
+    temp = None
+    if not info["workphone"]:
+        temp = """\n<tr><td width="20" valign="top" style="vertical-align: top; width: 20px; color: #159558; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">W:</td><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">%s</td></tr>""" % (info["workphone"])
+    if not info["cellphone"]:
+        temp = temp[:-10] + """&nbsp;&nbsp;<span style="color: #159558;">M:&nbsp;</span>%s</td></tr>""" % (info["cellphone"])
+    if not temp:
+        html_str += temp
+
+    if not info["emailaddress"]:
+        print (info["emailaddress"])
+        html_str += """\n<tr><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><span style="color: #159558;">E:&nbsp;</span><a href="mailto:%s" style="color: #1da1db; text-decoration: none; font-weight: normal; font-size: 14px;">%s</a></td></tr>""" % (info["emailaddress"], info["emailaddress"])
+
+    html_str += """\n<tr><td colspan="2" style="padding-bottom: 8px; padding-top: 5px;"><img src="%s"></td></tr>""" % (info["linkaddress"])
+
+    html_str += """\n</table>"""
+
+    # """<table cellpadding="0" cellspacing="0" border="0" style="background: none; border-width: 0px; border: 0px; margin: 0; padding: 0;">
+    # <tr><td colspan="2" style="padding-bottom: 5px; color: #159558; font-size: 18px; font-family: Arial, Helvetica, sans-serif;">%s %s</td></tr>
+    # <tr><td colspan="2" style="color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><i>%s</i></td></tr>
+    # <tr><td colspan="2" style="color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><strong>EasyPay Finance</strong></td></tr>
+    # <tr><td width="20" valign="top" style="vertical-align: top; width: 20px; color: #159558; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">W:</td><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;">%s&nbsp;&nbsp;<span style="color: #159558;">M:&nbsp;</span>%s</td></tr>
+    # <tr><td valign="top" style="vertical-align: top; color: #333333; font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><span style="color: #159558;">E:&nbsp;</span><a href="mailto:%s" style="color: #1da1db; text-decoration: none; font-weight: normal; font-size: 14px;">%s</a></td></tr>
+    # <tr><td colspan="2" style="padding-bottom: 8px; padding-top: 5px;"><img src="%s"></td></tr>
+    # </table>""" % (
+    #     info["firstname"],
+    #     info["lastname"],
+    #     info["title"],
+    #     info["workphone"],
+    #     info["cellphone"],
+    #     info["emailaddress"],
+    #     info["emailaddress"],
+    #     info["linkaddress"]
+    # )
     file.write(html_str)
 
 
